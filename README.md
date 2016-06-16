@@ -15,7 +15,8 @@
 * 第一种使用方法：addTarget
 
 
-<pre>let refresh = XBRefreshControl(scrollView: tableView, activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
+<pre>
+let refresh = XBRefreshControl(scrollView: tableView, activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
 refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), forControlEvents: .ValueChanged)
 </pre>
 
@@ -23,11 +24,10 @@ refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), forContro
 <pre>
 let _ = XBRefreshControl(scrollView: tableView, refreshAction: { [unowned self](refreshControl) in
        self.dropViewDidBeginRefreshing(refreshControl)
-    }
-)
- </pre>
- 
- * 第三种使用方法：代理
+    })
+</pre>
+
+*  第三种使用方法：代理
  
 <pre>
 let _ = XBRefreshControl(scrollView: tableView, delegate: self)
