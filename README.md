@@ -21,6 +21,7 @@ refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), forContro
 </pre>
 
 * 第二种使用方法：闭包回调
+
 <pre>
 let _ = XBRefreshControl(scrollView: tableView, refreshAction: { [unowned self](refreshControl) in
        self.dropViewDidBeginRefreshing(refreshControl)
