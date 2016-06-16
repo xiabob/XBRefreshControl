@@ -47,10 +47,11 @@ public class XBRefreshControl: UIControl {
     //视图相关变量
     private weak var scrollView: UIScrollView? 
     private var activity: UIView?
+    private var endRefreshView: UIView?
     private var shapeLayer = CAShapeLayer()
     private var arrowLayer = CAShapeLayer()
     private var highlightLayer = CAShapeLayer()
-    private var endRefreshView: UIView?
+    
     
     //储存型变量
     private var originalContentInset: UIEdgeInsets
@@ -284,7 +285,7 @@ public class XBRefreshControl: UIControl {
         let currentBottomPadding =  lerp(kMinBottomPadding, kMaxBottomPadding, percentage)
      
         var bottomOrigin = CGPointMake(floor(bounds.size.width / 2), bounds.size.height - currentBottomPadding - currentBottomRadius)
-        var topOrigin = CGPointZero
+        var topOrigin = CGPoint.zero
         if distance == 0 {
             topOrigin = CGPointMake(floor(bounds.size.width / 2), bottomOrigin.y)
         } else {
