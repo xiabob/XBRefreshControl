@@ -1,7 +1,7 @@
 # XBRefreshControl
 下拉刷新控件，纯swift框架，inspired by [ODRefreshControl](https://github.com/Sephiroth87/ODRefreshControl)
 
-![image](://github.com/xiabob/XBRefreshControl/blob/master/screenshots/sam.gif)
+![](https://github.com/xiabob/XBRefreshControl/blob/master/screenshots/sam.gif)
 
 #要求
 * iOS7.0+
@@ -15,7 +15,9 @@
 * 第一种使用方法：addTarget
 
 <code>
-let refresh = XBRefreshControl(scrollView: tableView, activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
+let refresh = XBRefreshControl(scrollView: tableView, activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)</code>
+
+<code>
 refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), forControlEvents: .ValueChanged)
 </code>
 
