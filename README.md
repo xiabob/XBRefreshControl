@@ -16,22 +16,25 @@
 
 
 <pre>
-let refresh = XBRefreshControl(scrollView: tableView, activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
+let refresh = XBRefreshControl(activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
+tableView.xb_refreshHeader = refresh
 refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), forControlEvents: .ValueChanged)
 </pre>
 
 * 第二种使用方法：闭包回调
 
 <pre>
-let _ = XBRefreshControl(scrollView: tableView, refreshAction: { [unowned self](refreshControl) in
-       self.dropViewDidBeginRefreshing(refreshControl)
-    })
+let refresh = XBRefreshControl { [unowned self](refreshControl) in
+    self.dropViewDidBeginRefreshing(refreshControl)
+}
+tableView.xb_refreshHeader = refresh
 </pre>
 
 *  第三种使用方法：代理
  
 <pre>
-let _ = XBRefreshControl(scrollView: tableView, delegate: self)
+let refresh = XBRefreshControl(delegate: self)
+tableView.xb_refreshHeader = refresh
 
 //XBRefreshControlDelegate
 func onRefresh(refreshControl: XBRefreshControl) {
