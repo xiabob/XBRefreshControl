@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "XBRefreshControl"
-  s.version      = “1.0”
+  s.version      = “v1.0”
   s.summary      = "A pull down RefreshControl by swift.”
 
   # This description is used to generate tags and improve search results.
