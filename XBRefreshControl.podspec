@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = 'XBRefreshControl'
-  s.version      = '1.0'
+  s.version      = '0.9'
   s.summary      = 'A pull down RefreshControl by swift.'
 
   # This description is used to generate tags and improve search results.
@@ -25,6 +25,7 @@ Pod::Spec.new do |s|
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   s.description  = <<-DESC
+		    RefreshControl by swift
                    DESC
 
   s.homepage     = 'https://github.com/xiabob/XBRefreshControl'
