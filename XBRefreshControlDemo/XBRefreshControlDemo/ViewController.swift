@@ -27,19 +27,21 @@ class ViewController: UIViewController, XBRefreshControlDelegate {
         view.addSubview(tableView)
         
         //第一种使用方法：addTarget
-        let refresh = XBRefreshControl(scrollView: tableView, activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
-//        refresh.tintColor = UIColor.orangeColor()
-//        refresh.setActivityIndicatorViewStyle(.White)
+        let refresh = XBRefreshControl(activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
+        refresh.tintColor = UIColor.orangeColor()
+        refresh.setActivityIndicatorViewStyle(.Gray)
+        tableView.xb_refreshHeader = refresh
         refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), forControlEvents: .ValueChanged)
         
         //第二种使用方法：闭包回调
-//        let _ = XBRefreshControl(scrollView: tableView, refreshAction: { [unowned self](refreshControl) in
+//        let refresh = XBRefreshControl { [unowned self](refreshControl) in
 //            self.dropViewDidBeginRefreshing(refreshControl)
-//        })
+//        }
+//        tableView.xb_refreshHeader = refresh
         
         //第三种使用方法：代理
-//        let _ = XBRefreshControl(scrollView: tableView, delegate: self)
-
+//        let refresh = XBRefreshControl(delegate: self)
+//        tableView.xb_refreshHeader = refresh
     }
     
     // XBRefreshControlDelegate

@@ -62,31 +62,24 @@ public class XBRefreshControl: UIControl {
     public weak var delegate: XBRefreshControlDelegate?
     
     //MARK: - init life cycle
-    convenience init(scrollView: UIScrollView) {
-        self.init(scrollView: scrollView, activityIndicatorView: nil, delegate: nil, refreshAction: nil)
+
+    convenience init(refreshAction: XBRefreshAction?) {
+        self.init(activityIndicatorView: nil, delegate: nil, refreshAction: refreshAction)
     }
     
-    convenience init(scrollView: UIScrollView, refreshAction: XBRefreshAction?) {
-        self.init(scrollView: scrollView, activityIndicatorView: nil, delegate: nil, refreshAction: refreshAction)
+    convenience init(delegate: XBRefreshControlDelegate?) {
+        self.init(activityIndicatorView: nil, delegate: delegate,refreshAction: nil)
     }
     
-    convenience init(scrollView: UIScrollView, delegate: XBRefreshControlDelegate?) {
-        self.init(scrollView: scrollView, activityIndicatorView: nil, delegate: delegate,refreshAction: nil)
-    }
-    
-    init(scrollView: UIScrollView,
-         activityIndicatorView: UIView?,
+    init(activityIndicatorView: UIView?,
          delegate: XBRefreshControlDelegate?,
          refreshAction: XBRefreshAction?) {
-        
-        self.scrollView = scrollView
-        originalContentInset = scrollView.contentInset
+        originalContentInset = UIEdgeInsets()
         activity = activityIndicatorView
         self.refreshAction = refreshAction
         self.delegate = delegate
         
-        super.init(frame: CGRectMake(0, -(kTotalViewHeight + scrollView.contentInset.top), scrollView.frame.size.width, kTotalViewHeight))
-        
+        super.init(frame: CGRect.zero)
         commonInit()
     }
     
@@ -152,9 +145,37 @@ public class XBRefreshControl: UIControl {
         shapeLayer.addSublayer(highlightLayer)
     }
     
-    //MARK: - observer method
+    //MARK: - add or remove refresh control
     
-    private func xb_observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    public override func willMoveToSuperview(newSuperview: UIView?) {
+        super.willMoveToSuperview(newSuperview)
+        
+        //handel UIScrollView
+        if newSuperview != nil && !(newSuperview is UIScrollView) { return }
+
+        removeObserver()
+        if newSuperview != nil {
+            scrollView = newSuperview as? UIScrollView
+            originalContentInset = scrollView!.contentInset
+            frame = CGRectMake(0, -(kTotalViewHeight + scrollView!.contentInset.top), scrollView!.frame.size.width, kTotalViewHeight)
+            addObserver()
+        }
+    }
+    
+    //MARK: - add or remove observer
+    private func addObserver() {
+        scrollView?.addObserver(self, forKeyPath: kContentOffset, options: .New, context: nil)
+        scrollView?.addObserver(self, forKeyPath: kContentInset, options: .New, context: nil)
+    }
+    
+    private func removeObserver() {
+        //不使用scrollView，因为在deinit阶段，scrollView为nil
+        superview?.removeObserver(self, forKeyPath: kContentOffset)
+        superview?.removeObserver(self, forKeyPath: kContentInset)
+    }
+    
+    //MARK: - handle observer event
+     override public func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
         var offset: CGFloat = 0
         guard let scrollView = self.scrollView else {return}
         
@@ -434,17 +455,6 @@ public class XBRefreshControl: UIControl {
     //求插值
     private func lerp(a: CGFloat, _ b: CGFloat, _ p: CGFloat) -> CGFloat {
         return a + (b - a) * p
-    }
-    
-    private func addObserver() {
-        scrollView?.xb_addObserver(forKeyPath: kContentOffset, options: .New, context: nil, closure: { [unowned self](keyPath, object, change, context) in
-            self.xb_observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context)
-        })
-        
-        scrollView?.xb_addObserver(forKeyPath: kContentInset, options: .New, context: nil, closure: { [unowned self](keyPath, object, change, context) in
-            self.xb_observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context)
-        })
-    
     }
     
     @objc private func hideRefreshControl() {
