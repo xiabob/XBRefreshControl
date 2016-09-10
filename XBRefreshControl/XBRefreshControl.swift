@@ -63,15 +63,15 @@ public class XBRefreshControl: UIControl {
     
     //MARK: - init life cycle
 
-    convenience init(refreshAction: XBRefreshAction?) {
+    convenience public init(refreshAction: XBRefreshAction?) {
         self.init(activityIndicatorView: nil, delegate: nil, refreshAction: refreshAction)
     }
     
-    convenience init(delegate: XBRefreshControlDelegate?) {
+    convenience public init(delegate: XBRefreshControlDelegate?) {
         self.init(activityIndicatorView: nil, delegate: delegate,refreshAction: nil)
     }
     
-    init(activityIndicatorView: UIView?,
+    public init(activityIndicatorView: UIView?,
          delegate: XBRefreshControlDelegate?,
          refreshAction: XBRefreshAction?) {
         originalContentInset = UIEdgeInsets()
