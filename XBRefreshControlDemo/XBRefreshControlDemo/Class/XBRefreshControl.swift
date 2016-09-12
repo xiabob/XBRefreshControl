@@ -60,6 +60,7 @@ public class XBRefreshControl: UIControl {
     
     public var refreshAction: XBRefreshAction?
     public weak var delegate: XBRefreshControlDelegate?
+    public var shouldShowWhenbounced = false
     
     //MARK: - init life cycle
 
@@ -198,7 +199,6 @@ public class XBRefreshControl: UIControl {
         guard let value = ch["new"]?.CGPointValue() else {return}
         offset = value.y + originalContentInset.top
         
-        
         if refreshing {
             if offset != 0 {
                 // Keep thing pinned at the top
@@ -270,11 +270,13 @@ public class XBRefreshControl: UIControl {
                     dontDraw = true
                 }
             }
-            
-            if offset > 0 && lastOffset > offset && !scrollView.tracking {
-                // If we are scrolling too fast, don't draw, and don't trigger unless the scrollView bounced back
-                canRefresh = false
-                dontDraw = true
+
+            if !shouldShowWhenbounced {
+                if offset > 0 && lastOffset > offset && !scrollView.tracking {
+                    // If we are scrolling too fast, don't draw, and don't trigger unless the scrollView bounced back
+                    canRefresh = false
+                    dontDraw = true
+                }
             }
             
             if dontDraw {
@@ -520,7 +522,7 @@ public class XBRefreshControl: UIControl {
     
     ///结束刷新动作时，需要调用此方法
     public func endRefreshing() {
-        if (refreshing) {
+        if refreshing {
             refreshing = false
             
             var delay: NSTimeInterval = 0
@@ -539,11 +541,11 @@ public class XBRefreshControl: UIControl {
                         self!.activity!.alpha = 0
                         self!.activity!.layer.transform = CATransform3DMakeScale(0.1, 0.1, 1)
                     }
-                })
+                    })
             }
             
-            //hide view with animation
-            performSelector(#selector(hideRefreshControl), withObject: nil, afterDelay: delay)
+            //hide view with animation, set common mode
+            performSelector(#selector(hideRefreshControl), withObject: nil, afterDelay: delay, inModes: [NSRunLoopCommonModes])
         }
     }
     
