@@ -8,59 +8,75 @@
 
 import UIKit
 
-public typealias XBRefreshAction = (refreshControl: XBRefreshControl)->()
+public typealias XBRefreshAction = (_ refreshControl: XBRefreshControl)->()
 
 public protocol XBRefreshControlDelegate: NSObjectProtocol {
-    func onRefresh(refreshControl: XBRefreshControl)
+    func onRefresh(_ refreshControl: XBRefreshControl)
 }
 
-public class XBRefreshControl: UIControl {
+open class XBRefreshControl: UIControl {
     //keyPath
-    private let kContentOffset = "contentOffset"
-    private let kContentInset = "contentInset"
+    fileprivate let kContentOffset = "contentOffset"
+    fileprivate let kContentInset = "contentInset"
     
     //数值常量参数
-    private let kTotalViewHeight: CGFloat   = 400
-    private let kOpenedViewHeight: CGFloat  = 44
-    private let kMinTopPadding: CGFloat     = 9
-    private let kMaxTopPadding: CGFloat     = 5
-    private let kMinTopRadius: CGFloat      = 12.5
-    private let kMaxTopRadius: CGFloat      = 16
-    private let kMinBottomRadius: CGFloat   = 3
-    private let kMaxBottomRadius: CGFloat   = 16
-    private let kMinBottomPadding: CGFloat  = 4
-    private let kMaxBottomPadding: CGFloat  = 6
-    private let kMinArrowSize: CGFloat      = 2
-    private let kMaxArrowSize: CGFloat      = 3
-    private let kMinArrowRadius: CGFloat    = 5
-    private let kMaxArrowRadius: CGFloat    = 7
-    private let kMaxDistance: CGFloat       = 53
+    fileprivate let kTotalViewHeight: CGFloat   = 400
+    fileprivate let kOpenedViewHeight: CGFloat  = 44
+    fileprivate let kMinTopPadding: CGFloat     = 9
+    fileprivate let kMaxTopPadding: CGFloat     = 5
+    fileprivate let kMinTopRadius: CGFloat      = 12.5
+    fileprivate let kMaxTopRadius: CGFloat      = 16
+    fileprivate let kMinBottomRadius: CGFloat   = 3
+    fileprivate let kMaxBottomRadius: CGFloat   = 16
+    fileprivate let kMinBottomPadding: CGFloat  = 4
+    fileprivate let kMaxBottomPadding: CGFloat  = 6
+    fileprivate let kMinArrowSize: CGFloat      = 2
+    fileprivate let kMaxArrowSize: CGFloat      = 3
+    fileprivate let kMinArrowRadius: CGFloat    = 5
+    fileprivate let kMaxArrowRadius: CGFloat    = 7
+    fileprivate let kMaxDistance: CGFloat       = 53
     
     //控制状态的bool变量
-    private var refreshing = false
-    private var canRefresh = true
-    private var ignoreInset = false
-    private var ignoreOffset = false
-    private var didSetInset = false
-    private var hasSectionHeaders = false
+    fileprivate var refreshing = false
+    fileprivate var canRefresh = true
+    fileprivate var ignoreInset = false
+    fileprivate var ignoreOffset = false
+    fileprivate var didSetInset = false
+    fileprivate var hasSectionHeaders = false
     
     //视图相关变量
-    private weak var scrollView: UIScrollView? 
-    private var activity: UIView?
-    private var endRefreshView: UIView?
-    private var shapeLayer = CAShapeLayer()
-    private var arrowLayer = CAShapeLayer()
-    private var highlightLayer = CAShapeLayer()
-    
+    fileprivate weak var scrollView: UIScrollView? 
+    fileprivate var activity: UIView?
+    fileprivate var endRefreshView: UIView?
+    fileprivate var shapeLayer = CAShapeLayer()
+    fileprivate var arrowLayer = CAShapeLayer()
+    fileprivate var highlightLayer = CAShapeLayer()
+    fileprivate var defaultEndRefreshView: UIView = {
+        let label = UILabel()
+        label.bounds = CGRect(x: 0, y: 0, width: 100, height: 20)
+        label.textColor = UIColor.gray
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textAlignment = .center
+        label.text = "刷新完成"
+        return label
+    }()
     
     //储存型变量
-    private var originalContentInset: UIEdgeInsets
-    private var lastOffset: CGFloat = 0
+    fileprivate var originalContentInset: UIEdgeInsets
+    fileprivate var lastOffset: CGFloat = 0
     
     
-    public var refreshAction: XBRefreshAction?
-    public weak var delegate: XBRefreshControlDelegate?
-    public var shouldShowWhenbounced = false
+    open var refreshAction: XBRefreshAction?
+    open weak var delegate: XBRefreshControlDelegate?
+    open var shouldShowWhenbounced = false
+    open var isShowDefaultEndRefreshView = false {
+        didSet {
+            //没有设置就使用默认
+            if endRefreshView == nil && isShowDefaultEndRefreshView {
+                endRefreshView = defaultEndRefreshView
+            }
+        }
+    }
     
     //MARK: - init life cycle
 
@@ -89,11 +105,11 @@ public class XBRefreshControl: UIControl {
     }
     
     deinit {
-        debugPrint("XBRefreshControl deinit")
+//        debugPrint("XBRefreshControl deinit")
     }
     
-    private func commonInit() {
-        autoresizingMask = .FlexibleWidth
+    fileprivate func commonInit() {
+        autoresizingMask = .flexibleWidth
         tintColor = UIColor(red: 155.0/255, green: 162.0/255, blue: 172.0/255, alpha: 1.0)
         
         configScrollView()
@@ -104,18 +120,18 @@ public class XBRefreshControl: UIControl {
     }
     
     //MARK: - config views
-    private func configScrollView() {
+    fileprivate func configScrollView() {
         scrollView?.addSubview(self)
         addObserver()
     }
     
-    private func configActivity() {
+    fileprivate func configActivity() {
         if activity == nil {
-            activity = UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+            activity = UIActivityIndicatorView(activityIndicatorStyle: .gray)
         }
-        let mask = UIViewAutoresizing.FlexibleLeftMargin.union(.FlexibleRightMargin)
+        let mask = UIViewAutoresizing.flexibleLeftMargin.union(.flexibleRightMargin)
         activity!.autoresizingMask = mask
-        activity!.center = CGPointMake(floor(frame.size.width / 2), floor(frame.size.height / 2)) 
+        activity!.center = CGPoint(x: floor(frame.size.width / 2), y: floor(frame.size.height / 2)) 
         activity!.alpha = 0 
         if let view = activity as? UIActivityIndicatorView {
             view.startAnimating()
@@ -123,33 +139,33 @@ public class XBRefreshControl: UIControl {
         addSubview(activity!)
     }
     
-    private func configShapeLayer() {
-        shapeLayer.fillColor = tintColor.CGColor
-        shapeLayer.strokeColor = UIColor.darkGrayColor().colorWithAlphaComponent(0.5).CGColor
+    fileprivate func configShapeLayer() {
+        shapeLayer.fillColor = tintColor.cgColor
+        shapeLayer.strokeColor = UIColor.darkGray.withAlphaComponent(0.5).cgColor
         shapeLayer.lineWidth = 0.5
-        shapeLayer.shadowColor = UIColor.blackColor().CGColor
-        shapeLayer.shadowOffset = CGSizeMake(0, 1)
+        shapeLayer.shadowColor = UIColor.black.cgColor
+        shapeLayer.shadowOffset = CGSize(width: 0, height: 1)
         shapeLayer.shadowOpacity = 0.4
         shapeLayer.shadowRadius = 0.5
         layer.addSublayer(shapeLayer)
     }
     
-    private func configArrowLayer() {
-        arrowLayer.strokeColor = UIColor.darkGrayColor().colorWithAlphaComponent(0.5).CGColor
+    fileprivate func configArrowLayer() {
+        arrowLayer.strokeColor = UIColor.darkGray.withAlphaComponent(0.5).cgColor
         arrowLayer.lineWidth = 0.5 
-        arrowLayer.fillColor = UIColor.whiteColor().CGColor
+        arrowLayer.fillColor = UIColor.white.cgColor
         shapeLayer.addSublayer(arrowLayer)
     }
     
-    private func configHighlightLayer() {
-        highlightLayer.fillColor = UIColor.whiteColor().colorWithAlphaComponent(0.2).CGColor
+    fileprivate func configHighlightLayer() {
+        highlightLayer.fillColor = UIColor.white.withAlphaComponent(0.2).cgColor
         shapeLayer.addSublayer(highlightLayer)
     }
     
     //MARK: - add or remove refresh control
     
-    public override func willMoveToSuperview(newSuperview: UIView?) {
-        super.willMoveToSuperview(newSuperview)
+    open override func willMove(toSuperview newSuperview: UIView?) {
+        super.willMove(toSuperview: newSuperview)
         
         //handel UIScrollView
         if newSuperview != nil && !(newSuperview is UIScrollView) { return }
@@ -158,25 +174,25 @@ public class XBRefreshControl: UIControl {
         if newSuperview != nil {
             scrollView = newSuperview as? UIScrollView
             originalContentInset = scrollView!.contentInset
-            frame = CGRectMake(0, -(kTotalViewHeight + scrollView!.contentInset.top), scrollView!.frame.size.width, kTotalViewHeight)
+            frame = CGRect(x: 0, y: -(kTotalViewHeight + scrollView!.contentInset.top), width: scrollView!.frame.size.width, height: kTotalViewHeight)
             addObserver()
         }
     }
     
     //MARK: - add or remove observer
-    private func addObserver() {
-        scrollView?.addObserver(self, forKeyPath: kContentOffset, options: .New, context: nil)
-        scrollView?.addObserver(self, forKeyPath: kContentInset, options: .New, context: nil)
+    fileprivate func addObserver() {
+        scrollView?.addObserver(self, forKeyPath: kContentOffset, options: .new, context: nil)
+        scrollView?.addObserver(self, forKeyPath: kContentInset, options: .new, context: nil)
     }
     
-    private func removeObserver() {
+    fileprivate func removeObserver() {
         //不使用scrollView，因为在deinit阶段，scrollView为nil
         superview?.removeObserver(self, forKeyPath: kContentOffset)
         superview?.removeObserver(self, forKeyPath: kContentInset)
     }
     
     //MARK: - handle observer event
-     override public func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+     override open func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         var offset: CGFloat = 0
         guard let scrollView = self.scrollView else {return}
         
@@ -184,19 +200,20 @@ public class XBRefreshControl: UIControl {
             if !ignoreInset {
                 //设置inset
                 guard let ch = change else {return}
-                guard let value = ch["new"]?.UIEdgeInsetsValue() else {return}
+                guard let value = (ch[.newKey] as AnyObject?)?.uiEdgeInsetsValue else {return}
                 originalContentInset = value
-                frame = CGRectMake(0, -(kTotalViewHeight + scrollView.contentInset.top), scrollView.frame.size.width, kTotalViewHeight)
+                frame = CGRect(x: 0, y: -(kTotalViewHeight + scrollView.contentInset.top), width: scrollView.frame.size.width, height: kTotalViewHeight)
             }
             return
         }
         
-        if !enabled || ignoreOffset {
+        if !isEnabled || ignoreOffset {
             return
         }
         
         guard let ch = change else {return}
-        guard let value = ch["new"]?.CGPointValue() else {return}
+        guard let value = (ch[.newKey] as AnyObject?)?.cgPointValue else {return}
+        
         offset = value.y + originalContentInset.top
         
         if refreshing {
@@ -205,11 +222,11 @@ public class XBRefreshControl: UIControl {
                 CATransaction.begin()
                 //取消隐式动画
                 CATransaction.setDisableActions(true)
-                shapeLayer.position = CGPointMake(0, kMaxDistance + offset + kOpenedViewHeight) 
+                shapeLayer.position = CGPoint(x: 0, y: kMaxDistance + offset + kOpenedViewHeight) 
                 CATransaction.commit()
                 
-                activity!.center = CGPointMake(floor(frame.size.width / 2),
-                                               min(offset + frame.size.height + floor(kOpenedViewHeight / 2), frame.size.height - kOpenedViewHeight / 2))
+                activity!.center = CGPoint(x: floor(frame.size.width / 2),
+                                               y: min(offset + frame.size.height + floor(kOpenedViewHeight / 2), frame.size.height - kOpenedViewHeight / 2))
                 
                 //scrollView回弹过程，在这个过程中的(offset >= -kOpenedViewHeight)阶段我们改变scrollView的contentInset，但在这里不需要监听contentInset的变化
                 ignoreInset = true
@@ -218,13 +235,13 @@ public class XBRefreshControl: UIControl {
                 if offset < 0 {
                     // Set the inset depending on the situation
                     if offset >= -kOpenedViewHeight {
-                        if !scrollView.dragging {
+                        if !scrollView.isDragging {
                             if !didSetInset {
                                 didSetInset = true
                                 hasSectionHeaders = false
                                 if let tableView = scrollView as? UITableView {
                                     for i in 0 ..< tableView.numberOfSections {
-                                        let height = tableView.rectForHeaderInSection(i).size.height
+                                        let height = tableView.rectForHeader(inSection: i).size.height
                                         if height != 0 {
                                             hasSectionHeaders = true
                                             break
@@ -272,7 +289,7 @@ public class XBRefreshControl: UIControl {
             }
 
             if !shouldShowWhenbounced {
-                if offset > 0 && lastOffset > offset && !scrollView.tracking {
+                if offset > 0 && lastOffset > offset && !scrollView.isTracking {
                     // If we are scrolling too fast, don't draw, and don't trigger unless the scrollView bounced back
                     canRefresh = false
                     dontDraw = true
@@ -295,7 +312,7 @@ public class XBRefreshControl: UIControl {
         
         //You don't need to release CF objects in Swift,
         //http://stackoverflow.com/questions/24176481/cannot-release-path-created-by-cgpathcreatemutable-in-swift
-        let path = CGPathCreateMutable()
+        let path = CGMutablePath()
         
         //Calculate some useful points and values
         let verticalShift = max(0, -((kMaxTopRadius + kMaxBottomRadius + kMaxTopPadding + kMaxBottomPadding) + offset))
@@ -307,12 +324,12 @@ public class XBRefreshControl: UIControl {
         let currentBottomRadius = lerp(kMinBottomRadius, kMaxBottomRadius, percentage)
         let currentBottomPadding =  lerp(kMinBottomPadding, kMaxBottomPadding, percentage)
      
-        var bottomOrigin = CGPointMake(floor(bounds.size.width / 2), bounds.size.height - currentBottomPadding - currentBottomRadius)
+        var bottomOrigin = CGPoint(x: floor(bounds.size.width / 2), y: bounds.size.height - currentBottomPadding - currentBottomRadius)
         var topOrigin = CGPoint.zero
         if distance == 0 {
-            topOrigin = CGPointMake(floor(bounds.size.width / 2), bottomOrigin.y)
+            topOrigin = CGPoint(x: floor(bounds.size.width / 2), y: bottomOrigin.y)
         } else {
-            topOrigin = CGPointMake(floor(bounds.size.width / 2), bounds.size.height + offset + currentTopPadding + currentTopRadius)
+            topOrigin = CGPoint(x: floor(bounds.size.width / 2), y: bounds.size.height + offset + currentTopPadding + currentTopRadius)
             if percentage == 0 {
                 bottomOrigin.y -= (fabs(verticalShift) - kMaxDistance)
                 triggered = true
@@ -320,25 +337,24 @@ public class XBRefreshControl: UIControl {
         }
         
         //Top semicircle，顶部半圆
-        CGPathAddArc(path, nil, topOrigin.x, topOrigin.y, currentTopRadius, 0, CGFloat(M_PI), true)
+        path.addArc(center: topOrigin, radius: currentTopRadius, startAngle: 0, endAngle: CGFloat.pi, clockwise: true)
         
         //Left curve，左侧贝塞尔曲线
-        let leftCp1 = CGPointMake(lerp((topOrigin.x - currentTopRadius), (bottomOrigin.x - currentBottomRadius), 0.1), lerp(topOrigin.y, bottomOrigin.y, 0.2))
-        let leftCp2 = CGPointMake(lerp((topOrigin.x - currentTopRadius), (bottomOrigin.x - currentBottomRadius), 0.9), lerp(topOrigin.y, bottomOrigin.y, 0.2))
-        let leftDestination = CGPointMake(bottomOrigin.x - currentBottomRadius, bottomOrigin.y)
-        
-        CGPathAddCurveToPoint(path, nil, leftCp1.x, leftCp1.y, leftCp2.x, leftCp2.y, leftDestination.x, leftDestination.y)
+        let leftCp1 = CGPoint(x: lerp((topOrigin.x - currentTopRadius), (bottomOrigin.x - currentBottomRadius), 0.1), y: lerp(topOrigin.y, bottomOrigin.y, 0.2))
+        let leftCp2 = CGPoint(x: lerp((topOrigin.x - currentTopRadius), (bottomOrigin.x - currentBottomRadius), 0.9), y: lerp(topOrigin.y, bottomOrigin.y, 0.2))
+        let leftDestination = CGPoint(x: bottomOrigin.x - currentBottomRadius, y: bottomOrigin.y)
+        path.addCurve(to: leftDestination, control1: leftCp1, control2: leftCp2)
         
         //Bottom semicircle，底部半圆
-        CGPathAddArc(path, nil, bottomOrigin.x, bottomOrigin.y, currentBottomRadius, CGFloat(M_PI), 0, true)
+        path.addArc(center: bottomOrigin, radius: currentBottomRadius, startAngle: CGFloat.pi, endAngle: 0, clockwise: true)
         
         //Right curve，右侧贝塞尔曲线
-        let rightCp2 = CGPointMake(lerp((topOrigin.x + currentTopRadius), (bottomOrigin.x + currentBottomRadius), 0.1), lerp(topOrigin.y, bottomOrigin.y, 0.2))
-        let rightCp1 = CGPointMake(lerp((topOrigin.x + currentTopRadius), (bottomOrigin.x + currentBottomRadius), 0.9), lerp(topOrigin.y, bottomOrigin.y, 0.2))
-        let rightDestination = CGPointMake(topOrigin.x + currentTopRadius, topOrigin.y)
-        
-        CGPathAddCurveToPoint(path, nil, rightCp1.x, rightCp1.y, rightCp2.x, rightCp2.y, rightDestination.x, rightDestination.y)
-        CGPathCloseSubpath(path)
+        let rightCp2 = CGPoint(x: lerp((topOrigin.x + currentTopRadius), (bottomOrigin.x + currentBottomRadius), 0.1), y: lerp(topOrigin.y, bottomOrigin.y, 0.2))
+        let rightCp1 = CGPoint(x: lerp((topOrigin.x + currentTopRadius), (bottomOrigin.x + currentBottomRadius), 0.9), y: lerp(topOrigin.y, bottomOrigin.y, 0.2))
+        let rightDestination = CGPoint(x: topOrigin.x + currentTopRadius, y: topOrigin.y)
+        path.addCurve(to: rightDestination, control1: rightCp1, control2: rightCp2)
+
+        path.closeSubpath()
         
         //未触发刷新显示菊花转
         if !triggered {
@@ -358,14 +374,16 @@ public class XBRefreshControl: UIControl {
             let currentArrowRadius = lerp(kMinArrowRadius, kMaxArrowRadius, percentage)
             let arrowBigRadius = currentArrowRadius + (currentArrowSize / 2)
             let arrowSmallRadius = currentArrowRadius - (currentArrowSize / 2)
-            let arrowPath = CGPathCreateMutable()
-            CGPathAddArc(arrowPath, nil, 0, 0, arrowBigRadius, 0, CGFloat(3 * M_PI_2), false)
-            CGPathAddLineToPoint(arrowPath, nil, 0, 0 - arrowBigRadius - currentArrowSize)
-            CGPathAddLineToPoint(arrowPath, nil, 0 + (2 * currentArrowSize), 0 - arrowBigRadius + (currentArrowSize / 2))
-            CGPathAddLineToPoint(arrowPath, nil, 0, 0 - arrowBigRadius + (2 * currentArrowSize))
-            CGPathAddLineToPoint(arrowPath, nil, 0, 0 - arrowBigRadius + currentArrowSize)
-            CGPathAddArc(arrowPath, nil, 0, 0, arrowSmallRadius, CGFloat(3 * M_PI_2), 0, true)
-            CGPathCloseSubpath(arrowPath)
+            let arrowPath = CGMutablePath()
+            
+            arrowPath.addArc(center: CGPoint.zero, radius: arrowBigRadius, startAngle: 0, endAngle: CGFloat.pi*1.5, clockwise: false)
+            arrowPath.addLine(to: CGPoint(x: 0, y: 0 - arrowBigRadius - currentArrowSize))
+            arrowPath.addLine(to: CGPoint(x: 0 + (2 * currentArrowSize), y: 0 - arrowBigRadius + (currentArrowSize / 2)))
+            arrowPath.addLine(to: CGPoint(x: 0, y: 0 - arrowBigRadius + (2 * currentArrowSize)))
+            arrowPath.addLine(to: CGPoint(x: 0, y: 0 - arrowBigRadius + currentArrowSize))
+            arrowPath.addArc(center: CGPoint.zero, radius: arrowSmallRadius, startAngle: CGFloat.pi*1.5, endAngle: 0, clockwise: true)
+            
+            arrowPath.closeSubpath()
             arrowLayer.path = arrowPath
             arrowLayer.fillRule = kCAFillRuleEvenOdd
             
@@ -377,9 +395,9 @@ public class XBRefreshControl: UIControl {
             CATransaction.commit()
             
             // Add the highlight shape
-            let highlightPath = CGPathCreateMutable()
-            CGPathAddArc(highlightPath, nil, topOrigin.x, topOrigin.y, currentTopRadius, 0, CGFloat(M_PI), true)
-            CGPathAddArc(highlightPath, nil, topOrigin.x, topOrigin.y + 1.25, currentTopRadius, CGFloat(M_PI), 0, false)
+            let highlightPath = CGMutablePath()
+            highlightPath.addArc(center: topOrigin, radius: currentTopRadius, startAngle: 0, endAngle: CGFloat.pi, clockwise: true)
+            highlightPath.addArc(center: CGPoint(x: topOrigin.x, y: topOrigin.y + 1.25), radius: currentTopRadius, startAngle: CGFloat.pi, endAngle: 0, clockwise: false)
             
             highlightLayer.path = highlightPath
             highlightLayer.fillRule = kCAFillRuleNonZero
@@ -391,44 +409,46 @@ public class XBRefreshControl: UIControl {
             let pathMorph = CABasicAnimation(keyPath: "path")
             pathMorph.duration = 0.15
             pathMorph.fillMode = kCAFillModeForwards
-            pathMorph.removedOnCompletion = false
-            let toPath = CGPathCreateMutable()
-            CGPathAddArc(toPath, nil, topOrigin.x, topOrigin.y, radius, 0, CGFloat(M_PI), true)
-            CGPathAddCurveToPoint(toPath, nil, topOrigin.x - radius, topOrigin.y, topOrigin.x - radius, topOrigin.y, topOrigin.x - radius, topOrigin.y)
-            CGPathAddArc(toPath, nil, topOrigin.x, topOrigin.y, radius, CGFloat(M_PI), 0, true)
-            CGPathAddCurveToPoint(toPath, nil, topOrigin.x + radius, topOrigin.y, topOrigin.x + radius, topOrigin.y, topOrigin.x + radius, topOrigin.y)
-            CGPathCloseSubpath(toPath) 
+            pathMorph.isRemovedOnCompletion = false
+            
+            let toPath = CGMutablePath()
+            toPath.addArc(center: topOrigin, radius: radius, startAngle: 0, endAngle: CGFloat.pi, clockwise: true)
+            toPath.addCurve(to: CGPoint(x: topOrigin.x - radius, y: topOrigin.y), control1: CGPoint(x: topOrigin.x - radius, y: topOrigin.y), control2: CGPoint(x: topOrigin.x - radius, y: topOrigin.y))
+            toPath.addArc(center: topOrigin, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: true)
+            toPath.addCurve(to: CGPoint(x: topOrigin.x + radius, y: topOrigin.y), control1: CGPoint(x: topOrigin.x + radius, y: topOrigin.y), control2: CGPoint(x: topOrigin.x + radius, y: topOrigin.y))
+            
+            toPath.closeSubpath()
             pathMorph.toValue = toPath
-            shapeLayer.addAnimation(pathMorph, forKey: nil)
+            shapeLayer.add(pathMorph, forKey: nil)
             
             let shadowPathMorph = CABasicAnimation(keyPath:"shadowPath")
             shadowPathMorph.duration = 0.15
             shadowPathMorph.fillMode = kCAFillModeForwards
-            shadowPathMorph.removedOnCompletion = false
+            shadowPathMorph.isRemovedOnCompletion = false
             shadowPathMorph.toValue = toPath
-            shapeLayer.addAnimation(shadowPathMorph, forKey: nil)
+            shapeLayer.add(shadowPathMorph, forKey: nil)
             
            let shapeAlphaAnimation = CABasicAnimation(keyPath:"opacity")
             shapeAlphaAnimation.duration = 0.1
             shapeAlphaAnimation.beginTime = CACurrentMediaTime() + 0.1
-            shapeAlphaAnimation.toValue = NSNumber(float: 0)
+            shapeAlphaAnimation.toValue = NSNumber(value: 0 as Float)
             shapeAlphaAnimation.fillMode = kCAFillModeForwards
-            shapeAlphaAnimation.removedOnCompletion = false
-            shapeLayer.addAnimation(shapeAlphaAnimation, forKey:nil)
+            shapeAlphaAnimation.isRemovedOnCompletion = false
+            shapeLayer.add(shapeAlphaAnimation, forKey:nil)
             
             let alphaAnimation = CABasicAnimation(keyPath:"opacity")
             alphaAnimation.duration = 0.1
-            alphaAnimation.toValue = NSNumber(float: 0)
+            alphaAnimation.toValue = NSNumber(value: 0 as Float)
             alphaAnimation.fillMode = kCAFillModeForwards
-            alphaAnimation.removedOnCompletion = false
-            arrowLayer.addAnimation(alphaAnimation, forKey:nil)
-            highlightLayer.addAnimation(alphaAnimation, forKey:nil)
+            alphaAnimation.isRemovedOnCompletion = false
+            arrowLayer.add(alphaAnimation, forKey:nil)
+            highlightLayer.add(alphaAnimation, forKey:nil)
             
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             activity!.layer.transform = CATransform3DMakeScale(0.1, 0.1, 1)
             CATransaction.commit()
-            UIView.animateWithDuration(0.2, delay: 0.15, options: .CurveLinear, animations: { [unowned self] in
+            UIView.animate(withDuration: 0.2, delay: 0.15, options: .curveLinear, animations: { [unowned self] in
                 self.activity!.alpha = 1
                 self.activity!.layer.transform = CATransform3DMakeScale(1, 1, 1)
                 }, completion: nil)
@@ -438,10 +458,10 @@ public class XBRefreshControl: UIControl {
             
             //刷新过程中，处理相关操作
             //默认方式
-            self.sendActionsForControlEvents(.ValueChanged)
+            self.sendActions(for: .valueChanged)
             //闭包方式
             if let refreshAction = self.refreshAction {
-                refreshAction(refreshControl: self)
+                refreshAction(self)
             }
             //代理回调方式
             if let delegate = self.delegate {
@@ -455,12 +475,12 @@ public class XBRefreshControl: UIControl {
     //MARK: - utils method
     
     //求插值
-    private func lerp(a: CGFloat, _ b: CGFloat, _ p: CGFloat) -> CGFloat {
+    fileprivate func lerp(_ a: CGFloat, _ b: CGFloat, _ p: CGFloat) -> CGFloat {
         return a + (b - a) * p
     }
     
-    @objc private func hideRefreshControl() {
-        UIView.animateWithDuration(0.4, animations: { [weak self] in
+    @objc fileprivate func hideRefreshControl() {
+        UIView.animate(withDuration: 0.4, animations: { [weak self] in
             if self != nil {
                 self!.ignoreInset = false
                 self!.scrollView?.contentInset = self!.originalContentInset
@@ -476,7 +496,7 @@ public class XBRefreshControl: UIControl {
                     self!.shapeLayer.removeAllAnimations()
                     self!.shapeLayer.path = nil
                     self!.shapeLayer.shadowPath = nil
-                    self!.shapeLayer.position = CGPointZero
+                    self!.shapeLayer.position = CGPoint.zero
                     self!.arrowLayer.removeAllAnimations()
                     self!.arrowLayer.path = nil
                     self!.highlightLayer.removeAllAnimations()
@@ -493,18 +513,18 @@ public class XBRefreshControl: UIControl {
     //MARK: - api
     
     ///你可以直接调用此方法来手动刷新，一般用不到
-    public func beginRefreshing() {
+    open func beginRefreshing() {
         if (!refreshing) {
             guard let scrollView = self.scrollView else {return}
             
             let alphaAnimation = CABasicAnimation(keyPath:"opacity")
             alphaAnimation.duration = 0.0001 
-            alphaAnimation.toValue = NSNumber(float: 0)
+            alphaAnimation.toValue = NSNumber(value: 0 as Float)
             alphaAnimation.fillMode = kCAFillModeForwards
-            alphaAnimation.removedOnCompletion = false
-            shapeLayer.addAnimation(alphaAnimation, forKey: nil)
-            arrowLayer.addAnimation(alphaAnimation, forKey: nil)
-            highlightLayer.addAnimation(alphaAnimation, forKey: nil)
+            alphaAnimation.isRemovedOnCompletion = false
+            shapeLayer.add(alphaAnimation, forKey: nil)
+            arrowLayer.add(alphaAnimation, forKey: nil)
+            highlightLayer.add(alphaAnimation, forKey: nil)
             
             activity!.alpha = 1
             activity!.layer.transform = CATransform3DMakeScale(1, 1, 1)
@@ -521,11 +541,11 @@ public class XBRefreshControl: UIControl {
     }
     
     ///结束刷新动作时，需要调用此方法
-    public func endRefreshing() {
+    open func endRefreshing() {
         if refreshing {
             refreshing = false
             
-            var delay: NSTimeInterval = 0
+            var delay: TimeInterval = 0
             if let endRefreshView = self.endRefreshView {
                 //show the endRefreshView
                 endRefreshView.center = activity!.center
@@ -535,7 +555,7 @@ public class XBRefreshControl: UIControl {
             }
             
             if delay > 0 {
-                UIView.animateWithDuration(0.15, animations: { [weak self] in
+                UIView.animate(withDuration: 0.15, animations: { [weak self] in
                     if self != nil {
                         self!.endRefreshView?.alpha = 1
                         self!.activity!.alpha = 0
@@ -545,38 +565,41 @@ public class XBRefreshControl: UIControl {
             }
             
             //hide view with animation, set common mode
-            performSelector(#selector(hideRefreshControl), withObject: nil, afterDelay: delay, inModes: [NSRunLoopCommonModes])
+            let delayTime = DispatchTime.now() + Double(Int64(delay * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+            DispatchQueue.main.asyncAfter(deadline: delayTime) {
+                self.hideRefreshControl()
+            }
         }
     }
     
     ///判断刷新状态
-    public func isRefreshing() -> Bool {
+    open func isRefreshing() -> Bool {
         return refreshing
     }
     
-    public func setEndRefreshView(view: UIView?) {
+    open func setEndRefreshView(_ view: UIView?) {
         endRefreshView = view
     }
     
-    public override var enabled: Bool {
+    open override var isEnabled: Bool {
         didSet {
-            shapeLayer.hidden = !enabled
+            shapeLayer.isHidden = !isEnabled
         }
     }
     
-    public override var tintColor: UIColor! {
+    open override var tintColor: UIColor! {
         didSet {
-            shapeLayer.fillColor = tintColor.CGColor
+            shapeLayer.fillColor = tintColor.cgColor
         }
     }
     
-    public func setActivityIndicatorViewColor(color: UIColor) {
+    open func setActivityIndicatorViewColor(_ color: UIColor) {
         if let activity = activity as? UIActivityIndicatorView {
             activity.color = color
         }
     }
     
-    public func setActivityIndicatorViewStyle(style: UIActivityIndicatorViewStyle) {
+    open func setActivityIndicatorViewStyle(_ style: UIActivityIndicatorViewStyle) {
         if let activity = activity as? UIActivityIndicatorView {
             activity.activityIndicatorViewStyle = style
         }
