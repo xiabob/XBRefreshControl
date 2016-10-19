@@ -17,21 +17,21 @@ class ViewController: UIViewController, XBRefreshControlDelegate {
         //对于ios7+带有导航栏的情况，需要按照下面两种方式之一设置
         //方式一
         automaticallyAdjustsScrollViewInsets = false
-        navigationController?.navigationBar.translucent = false
+        navigationController?.navigationBar.isTranslucent = false
         
         //方式二
 //        edgesForExtendedLayout = .None
         
         tableView = UITableView(frame: CGRect(x: 0, y: 0, width: view.bounds.size.width, height: 300))
-        tableView.backgroundColor = UIColor.whiteColor()
+        tableView.backgroundColor = UIColor.white
         view.addSubview(tableView)
         
         //第一种使用方法：addTarget
-        let refresh = XBRefreshControl(activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .Gray), delegate: nil, refreshAction: nil)
-        refresh.tintColor = UIColor.orangeColor()
-        refresh.setActivityIndicatorViewStyle(.Gray)
+        let refresh = XBRefreshControl(activityIndicatorView: UIActivityIndicatorView(activityIndicatorStyle: .gray), delegate: nil, refreshAction: nil)
+        refresh.tintColor = UIColor.orange
+        refresh.setActivityIndicatorViewStyle(.gray)
         tableView.xb_refreshHeader = refresh
-        refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), forControlEvents: .ValueChanged)
+        refresh.addTarget(self, action: #selector(dropViewDidBeginRefreshing), for: .valueChanged)
         
         //第二种使用方法：闭包回调
 //        let refresh = XBRefreshControl { [unowned self](refreshControl) in
@@ -45,18 +45,18 @@ class ViewController: UIViewController, XBRefreshControlDelegate {
     }
     
     // XBRefreshControlDelegate
-    func onRefresh(refreshControl: XBRefreshControl) {
-        dropViewDidBeginRefreshing(refreshControl)
+    func onRefresh(_ refreshControl: XBRefreshControl) {
+        dropViewDidBeginRefreshing(refreshControl: refreshControl)
     }
 
     func dropViewDidBeginRefreshing(refreshControl: XBRefreshControl) {
-        let popTime = dispatch_time(DISPATCH_TIME_NOW, Int64(2 * NSEC_PER_SEC))
-        dispatch_after(popTime, dispatch_get_main_queue()) {
+        let popTime = DispatchTime.now() + 2
+        DispatchQueue.main.asyncAfter(deadline: popTime) { 
             let label = UILabel()
             label.bounds = CGRect(x: 0, y: 0, width: 100, height: 20)
-            label.textColor = UIColor.grayColor()
-            label.font = UIFont.systemFontOfSize(14)
-            label.textAlignment = .Center
+            label.textColor = UIColor.gray
+            label.font = UIFont.systemFont(ofSize: 14)
+            label.textAlignment = .center
             label.text = "刷新完成"
             refreshControl.setEndRefreshView(label)
             
