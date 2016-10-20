@@ -64,6 +64,8 @@ open class XBRefreshControl: UIControl {
     //储存型变量
     fileprivate var originalContentInset: UIEdgeInsets
     fileprivate var lastOffset: CGFloat = 0
+    fileprivate var beginRefreshingTime: TimeInterval = 0
+    fileprivate var endRefreshingTime: TimeInterval = 0
     
     
     open var refreshAction: XBRefreshAction?
@@ -455,6 +457,7 @@ open class XBRefreshControl: UIControl {
             
             refreshing = true
             canRefresh = false
+            beginRefreshingTime = Date().timeIntervalSince1970
             
             //刷新过程中，处理相关操作
             //默认方式
@@ -537,38 +540,45 @@ open class XBRefreshControl: UIControl {
             
             refreshing = true
             canRefresh = false
+            
+            beginRefreshingTime = Date().timeIntervalSince1970
         }
     }
     
     ///结束刷新动作时，需要调用此方法
     open func endRefreshing() {
         if refreshing {
-            refreshing = false
-            
-            var delay: TimeInterval = 0
-            if let endRefreshView = self.endRefreshView {
-                //show the endRefreshView
-                endRefreshView.center = activity!.center
-                endRefreshView.alpha = 0
-                addSubview(endRefreshView)
-                delay = 0.5
-            }
-            
-            if delay > 0 {
-                UIView.animate(withDuration: 0.15, animations: { [weak self] in
-                    if self != nil {
-                        self!.endRefreshView?.alpha = 1
-                        self!.activity!.alpha = 0
-                        self!.activity!.layer.transform = CATransform3DMakeScale(0.1, 0.1, 1)
-                    }
-                    })
-            }
-            
-            //hide view with animation, set common mode
-            let delayTime = DispatchTime.now() + Double(Int64(delay * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
-            DispatchQueue.main.asyncAfter(deadline: delayTime) {
-                self.hideRefreshControl()
-            }
+            endRefreshingTime = Date().timeIntervalSince1970
+            let needWait = (endRefreshingTime - beginRefreshingTime) <= 0.25 ? true : false
+            let waitTime = needWait ? 0.25 : 0.0 //避免endRefreshing调用过快造成的动画异常
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + waitTime, execute: {
+                self.refreshing = false
+                
+                var delay: TimeInterval = 0
+                if let endRefreshView = self.endRefreshView {
+                    //show the endRefreshView
+                    endRefreshView.center = self.activity!.center
+                    endRefreshView.alpha = 0
+                    self.addSubview(endRefreshView)
+                    delay = 0.5
+                }
+                
+                if delay > 0 {
+                    UIView.animate(withDuration: 0.15, animations: { [weak self] in
+                        if self != nil {
+                            self!.endRefreshView?.alpha = 1
+                            self!.activity!.alpha = 0
+                            self!.activity!.layer.transform = CATransform3DMakeScale(0.1, 0.1, 1)
+                        }
+                        })
+                }
+                
+                //hide view with animation, set common mode
+                let delayTime = DispatchTime.now() + Double(Int64(delay * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+                DispatchQueue.main.asyncAfter(deadline: delayTime) {
+                    self.hideRefreshControl()
+                }
+            })
         }
     }
     
