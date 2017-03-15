@@ -3,15 +3,15 @@
 
 ![](https://github.com/xiabob/XBRefreshControl/blob/master/screenshots/sam.gif)
 
-#要求
+## 要求
 * iOS7.0+
 * Xcode 8.0+
 * Swift3.0
 
-#安装
+## 安装
 将Class目录下的XBRefreshControl.swift、XBScrollViewExtension.swift导入到工程即可
 
-#使用
+## 使用
 具体使用参看demo工程
 * 第一种使用方法：addTarget
 
